@@ -5,23 +5,31 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"goproject/go-bank-backend/DB"
-	"goproject/go-bank-backend/helpers"
+	"goproject/go-site-backend/DB"
+	"goproject/go-site-backend/helpers"
 )
 
 func PostAssignment(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post assignment."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	var formattedBody helpers.Assignment
 	err = json.Unmarshal(body, &formattedBody)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post assignment."}
+		json.NewEncoder(w).Encode(resp)
+	}
 	res := DB.PostAssignment(formattedBody.Title, formattedBody.Content, formattedBody.UserId)
 
 	if len(res) > 0 {
-		resp := helpers.ErrResponse{Message: res}
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode(formattedBody)
 	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 		resp := helpers.ErrResponse{Message: "Couldn't post assignment."}
 		json.NewEncoder(w).Encode(resp)
 	}
@@ -29,12 +37,20 @@ func PostAssignment(w http.ResponseWriter, r *http.Request) {
 
 func PostSubmission(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post assignment."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	var formattedBody helpers.Submission
 	err = json.Unmarshal(body, &formattedBody)
-	helpers.HandleErr(err)
-	res := DB.PostComment(formattedBody.GithubLink, formattedBody.AssignmentId, formattedBody.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post assignment."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	res := DB.PostSubmission(formattedBody.GithubLink, formattedBody.AssignmentId, formattedBody.UserId)
 
 	if len(res) > 0 {
 		resp := helpers.ErrResponse{Message: res}
@@ -46,6 +62,6 @@ func PostSubmission(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAssignments(w http.ResponseWriter, r *http.Request) {
-	res := DB.GetThreads()
+	res := DB.GetAssignments()
 	json.NewEncoder(w).Encode(res)
 }

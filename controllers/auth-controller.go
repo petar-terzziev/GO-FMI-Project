@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"goproject/go-bank-backend/DB"
-	"goproject/go-bank-backend/helpers"
+	"goproject/go-site-backend/DB"
+	"goproject/go-site-backend/helpers"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -16,12 +16,25 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't login."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	var formattedBody helpers.LoginStruct
 	err = json.Unmarshal(body, &formattedBody)
-	helpers.HandleErr(err)
-	login := DB.Login(formattedBody.Username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't login."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	login, err := DB.Login(formattedBody.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't login."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	if len(login.Username) > 0 {
 		if err := bcrypt.CompareHashAndPassword([]byte(login.HashPassword), []byte(formattedBody.Password)); err != nil {
@@ -48,18 +61,37 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't register."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
-	var formattedBody helpers.LoginStruct
+	var formattedBody helpers.User
 	err = json.Unmarshal(body, &formattedBody)
-	password, _ := bcrypt.GenerateFromPassword([]byte(formattedBody.Password), 14)
-	helpers.HandleErr(err)
-	register := DB.Register(formattedBody.Username, string(password))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't register."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	password, err := bcrypt.GenerateFromPassword([]byte(formattedBody.Password), 14)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't register."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	register, err := DB.Register(formattedBody.Username, formattedBody.Email, string(password), formattedBody.FN)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't register."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	if len(register) > 0 {
 		resp := helpers.ErrResponse{Message: register}
 		json.NewEncoder(w).Encode(resp)
 	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 		resp := helpers.ErrResponse{Message: "Couldn't register."}
 		json.NewEncoder(w).Encode(resp)
 	}

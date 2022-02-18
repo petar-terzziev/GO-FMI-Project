@@ -1,7 +1,7 @@
 package test
 
 import (
-	"goproject/go-bank-backend/controllers"
+	"goproject/go-site-backend/controllers"
 	"net/http"
 	"net/http/httptest"
 	"testing"

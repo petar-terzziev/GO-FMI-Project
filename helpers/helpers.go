@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -12,7 +13,15 @@ type Post struct {
 	ID      uint
 	Title   string
 	Content string
+	Poster  string
 	UserId  string
+}
+
+type User struct {
+	Username string
+	Email    string
+	Password string
+	FN       string
 }
 
 type Comment struct {
@@ -21,6 +30,7 @@ type Comment struct {
 	Content  string
 	ThreadId string
 	UserId   string
+	Poster   string
 }
 
 type Assignment struct {
@@ -38,7 +48,7 @@ type Submission struct {
 }
 
 type LoginStruct struct {
-	Username string
+	Email    string
 	Password string
 }
 
@@ -52,15 +62,14 @@ type ErrResponse struct {
 
 func HandleErr(err error) {
 	if err != nil {
-		panic(err.Error())
+		fmt.Print(err.Error())
 	}
 }
 
-func HashAndSalt(pass []byte) string {
+func HashAndSalt(pass []byte) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword(pass, bcrypt.MinCost)
-	HandleErr(err)
 
-	return string(hashed)
+	return string(hashed), err
 }
 
 func ExtractToken(r *http.Request) string {

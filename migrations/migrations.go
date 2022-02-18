@@ -14,6 +14,7 @@ type User struct {
 	Username string
 	Email    string
 	Password string
+	FN       string
 }
 
 type Thread struct {

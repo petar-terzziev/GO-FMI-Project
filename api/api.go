@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"goproject/go-bank-backend/controllers"
+	"goproject/go-site-backend/controllers"
 
 	"github.com/gorilla/mux"
 )
@@ -40,8 +40,10 @@ func StartApi() {
 	router.HandleFunc("/register", controllers.Register).Methods("POST")
 	router.HandleFunc("/forum/postThread", controllers.PostThread).Methods("POST")
 	router.HandleFunc("/forum/postComment", controllers.PostComment).Methods("POST")
-	router.HandleFunc("/forum/getComments/{postId}", controllers.PostThread).Methods("GET")
+	router.HandleFunc("/forum/getComments/{postId}", controllers.GetComments).Methods("GET")
 	router.HandleFunc("/forum/getAll", controllers.GetThreads).Methods("GET")
+	router.HandleFunc("/homework/postAssignment", controllers.PostAssignment).Methods("POST")
+	router.HandleFunc("/homework/postSubmission", controllers.PostSubmission).Methods("POST")
 
 	fmt.Println("App is working on port :8888")
 	http.Handle("/", &WithCORS{router})

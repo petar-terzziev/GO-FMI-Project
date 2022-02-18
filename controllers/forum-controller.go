@@ -5,25 +5,38 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"goproject/go-bank-backend/DB"
-	"goproject/go-bank-backend/helpers"
+	"goproject/go-site-backend/DB"
+	"goproject/go-site-backend/helpers"
 
 	"github.com/gorilla/mux"
 )
 
 func PostThread(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post thread."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	var formattedBody helpers.Post
 	err = json.Unmarshal(body, &formattedBody)
-	helpers.HandleErr(err)
-	res := DB.PostThread(formattedBody.Title, formattedBody.Content, formattedBody.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post thread."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	res, err := DB.PostThread(formattedBody.Title, formattedBody.Content, formattedBody.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post thread."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	if len(res) > 0 {
-		resp := helpers.ErrResponse{Message: res}
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode(formattedBody)
 	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 		resp := helpers.ErrResponse{Message: "Couldn't post thread."}
 		json.NewEncoder(w).Encode(resp)
 	}
@@ -31,12 +44,25 @@ func PostThread(w http.ResponseWriter, r *http.Request) {
 
 func PostComment(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	helpers.HandleErr(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post comment."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	var formattedBody helpers.Comment
 	err = json.Unmarshal(body, &formattedBody)
-	helpers.HandleErr(err)
-	res := DB.PostComment(formattedBody.ThreadId, formattedBody.Content, formattedBody.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post comment."}
+		json.NewEncoder(w).Encode(resp)
+	}
+	res, err := DB.PostComment(formattedBody.Content, formattedBody.ThreadId, formattedBody.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't post comment."}
+		json.NewEncoder(w).Encode(resp)
+	}
 
 	if len(res) > 0 {
 		resp := helpers.ErrResponse{Message: res}
@@ -48,12 +74,21 @@ func PostComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetThreads(w http.ResponseWriter, r *http.Request) {
-	res := DB.GetThreads()
+	res, err := DB.GetThreads()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+	}
 	json.NewEncoder(w).Encode(res)
 }
 
 func GetComments(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)
-	res := DB.GetComments(id["postId"])
+	res, err := DB.GetComments(id["postId"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		resp := helpers.ErrResponse{Message: "Couldn't get comments."}
+		json.NewEncoder(w).Encode(resp)
+	}
 	json.NewEncoder(w).Encode(res)
 }
