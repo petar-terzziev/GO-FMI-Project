@@ -3,7 +3,7 @@ A project for the Go course at FMI which is the backend to a website for the cou
 ## Run
 
 - Setup a PostgreSQL db
-- You need to setup your connection string in the two files, vulnerable-db.go, and migrations.go
+- You need to setup your connection string in the two files, db.go, and migrations.go
 - Start migration by commenting migration in main.go and commenting API
 - Type  (that will migrate to your db):
 ```
